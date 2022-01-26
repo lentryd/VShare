@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
+    <title><%= htmlWebpackPlugin.options.title %></title>
+  </head>
+
+  <body>
+    <noscript>
+      <strong>
+        Этот проект не может работать без JavaScript, пожалуйста, включите его.
+      </strong>
+    </noscript>
+
+    <div id="app"></div>
+
+    <!-- Анимация загрузки -->
+    <div id="app-loading" data-value="true" data-show="false" data-anim="false">
+      <div></div>
+      <span></span>
+    </div>
+    <style>
+      @media (prefers-color-scheme: light) {
+        :root {
+          --app-loading-color: #000000;
+          --app-loading-background: #e2e4e7;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --app-loading-color: #ffffff;
+          --app-loading-background: #0a0a0f;
+        }
+      }
+      #app-loading {
+        top: 0;
+        gap: 1rem;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 999;
+        display: flex;
+        position: fixed;
+        overflow: hidden;
+        font-size: 4rem;
+        transition: opacity 0.25s ease-out;
+        background: var(--app-loading-background);
+        align-items: center;
+        font-family: Roboto, sans-serif;
+        flex-direction: row;
+        justify-content: center;
+      }
+      #app-loading > * {
+        height: 5rem;
+        display: flex;
+        overflow: hidden;
+        min-width: 5rem;
+        align-items: center;
+        justify-content: center;
+      }
+      #app-loading > div {
+        color: var(--app-loading-background);
+        z-index: 2;
+        background: var(--app-loading-color);
+        font-weight: 500;
+      }
+      #app-loading > div::before {
+        content: "V";
+      }
+      #app-loading > span {
+        color: var(--app-loading-color);
+        border: 2px solid var(--app-loading-color);
+        z-index: 1;
+        border-left: none;
+        border-right: none;
+      }
+      #app-loading > span::before {
+        content: "Share";
+      }
+      #app-loading:not([data-show="true"]) > div,
+      #app-loading:not([data-show="true"]) > span {
+        visibility: hidden;
+      }
+      #app-loading[data-show="true"] > div::before {
+        -webkit-animation: l1 1.9s ease-in-out;
+        animation: l1 1.9s ease-in-out;
+      }
+      @-webkit-keyframes l1 {
+        0% {
+          opacity: 1;
+          transform: translateX(-100%);
+        }
+        50% {
+          transform: translateX(10%);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes l1 {
+        0% {
+          opacity: 1;
+          transform: translateX(-100%);
+        }
+        50% {
+          transform: translateX(10%);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      #app-loading[data-show="true"] > span {
+        -webkit-animation: l2 1.5s ease-in-out;
+        animation: l2 1.5s ease-in-out;
+      }
+      @-webkit-keyframes l2 {
+        0% {
+          width: 5rem;
+          transform: translateX(calc(-100% - 1rem));
+          justify-content: start;
+        }
+        50% {
+          width: 10.1875rem;
+          transform: translateX(0);
+          justify-content: start;
+        }
+      }
+      @keyframes l2 {
+        0% {
+          width: 5rem;
+          transform: translateX(calc(-100% - 1rem));
+          justify-content: start;
+        }
+        50% {
+          width: 10.1875rem;
+          transform: translateX(0);
+          justify-content: start;
+        }
+      }
+      #app-loading[data-show="true"] > span::before {
+        -webkit-animation: l3 2s ease-in-out;
+        animation: l3 2s ease-in-out;
+      }
+      @-webkit-keyframes l3 {
+        0% {
+          opacity: 1;
+          transform: translateY(100%);
+        }
+        50% {
+          transform: translateY(-10%);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes l3 {
+        0% {
+          opacity: 1;
+          transform: translateY(100%);
+        }
+        50% {
+          transform: translateY(-10%);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      #app-loading[data-anim="true"],
+      #app-loading[data-anim="true"] > * {
+        transition: opacity 0.25s ease-in-out, all 0.75s ease-out;
+      }
+      #app-loading[data-anim="true"] {
+        gap: 0.225rem;
+        -webkit-animation: l4 0.75s ease-in-out;
+        animation: l4 0.75s ease-in-out;
+        padding-top: 0.5rem;
+        align-items: flex-start;
+        padding-left: 0.75rem;
+        justify-content: flex-start;
+      }
+      @-webkit-keyframes l4 {
+        0% {
+          padding-top: calc(100vh / 2 - 50px);
+          padding-left: calc(100vw / 2 - 150px);
+        }
+      }
+      @keyframes l4 {
+        0% {
+          padding-top: calc(100vh / 2 - 50px);
+          padding-left: calc(100vw / 2 - 150px);
+        }
+      }
+      #app-loading[data-anim="true"] > * {
+        height: 1.125rem;
+        font-size: 0.9rem;
+        min-width: 1.125rem;
+      }
+      #app-loading[data-anim="true"] > div {
+        margin-top: 0.09rem;
+      }
+      #app-loading[data-anim="true"] > span {
+        border-width: 0.09rem;
+      }
+    </style>
+    <script>
+      (function () {
+        let lastStart = 0;
+        function getElement() {
+          return document.querySelector("#app-loading");
+        }
+        function showAnimation() {
+          lastStart = Date.now();
+          const el = getElement();
+
+          el.style.display = "";
+          el.setAttribute("data-show", "true");
+        }
+        function hideAnimation() {
+          const time = 2200 - (Date.now() - lastStart);
+          const el = getElement();
+          el.setAttribute("data-anim", "false");
+
+          setTimeout(() => {
+            const isApp = location.pathname.startsWith("/app")
+              ? location.pathname.match(/rooms\/.+/)
+                ? !window.matchMedia("(max-width: 42em)")?.matches
+                : true
+              : false;
+            if (isApp) el.setAttribute("data-anim", "true");
+            setTimeout(() => opacity(), isApp ? 750 : 0);
+          }, time);
+        }
+
+        function opacity() {
+          const el = getElement();
+          el.style.opacity = "0";
+
+          setTimeout(() => {
+            el.style.opacity = "";
+            el.style.display = "none";
+            el.setAttribute("data-show", "false");
+          }, 250);
+        }
+
+        document.body.onload = () => {
+          let observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+              if (mutation.attributeName != "data-value") return;
+              const value =
+                mutation.target.getAttribute("data-value") === "true";
+
+              if (value) showAnimation();
+              else hideAnimation();
+            });
+          });
+
+          observer.observe(getElement(), {
+            attributes: true,
+          });
+
+          lastStart = Date.now() + 500;
+          setTimeout(() => showAnimation(), 500);
+        };
+      })();
+    </script>
+  </body>
+</html>
