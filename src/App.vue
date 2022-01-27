@@ -52,9 +52,6 @@ export default defineComponent({
     window
       .matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", this.changeTheme);
-
-    if (this.$pwa.isInstalled && !this.$route.path.startsWith("/app/"))
-      this.$router.replace("/app/");
   },
 });
 </script>

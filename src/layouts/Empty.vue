@@ -4,6 +4,18 @@
   </div>
 </template>
 
+<script lang="ts">
+import { defineComponent } from "vue";
+
+export default defineComponent({
+  watch: {
+    "$pwa.isInstalled"(value) {
+      if (value) this.$router.replace("/app/");
+    },
+  },
+});
+</script>
+
 <style scoped>
 #empty {
   --color: #000000;
