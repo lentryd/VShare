@@ -32,16 +32,16 @@ export default defineComponent({
   },
 
   methods: {
-    goBack() {
-      window.history?.state.back?.startsWith("/app/rooms")
+    goBack(rid: string = "") {
+      window.history?.state.back?.startsWith("/app/rooms/" + rid)
         ? this.$router.back()
-        : this.$router.replace("/app/rooms/");
+        : this.$router.replace("/app/rooms/" + rid);
     },
     addUser() {
       if (!this.userId || !this.roomId) return;
 
+      this.goBack(this.roomId);
       this.$firebase.addMember(this.roomId, this.userId);
-      this.$router.replace("/app/rooms/" + this.roomId);
     },
   },
 
