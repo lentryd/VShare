@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 initializeApp({
   apiKey: "AIzaSyCpEY-3ye4t54kD1Q-8sJnyIwD5_1SWhkA",
-  authDomain: "vshare-69949.firebaseapp.com",
+  authDomain: "vshare.lentryd.su",
   databaseURL:
     "https://vshare-69949-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "vshare-69949",
