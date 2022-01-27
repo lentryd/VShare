@@ -2,7 +2,7 @@
   <div :id="id" class="message" :class="{ my: isMy }">
     <span v-if="!isMy" class="name" v-text="fromName" />
 
-    <span v-if="type == 'message'" class="text" v-text="text" />
+    <span v-if="type == 'message'" class="text" v-html="parseLink()" />
     <MFile
       v-else
       v-bind="{
@@ -56,6 +56,13 @@
 import { defineComponent } from "vue";
 import MFile from "./msg-file.vue";
 
+const urlRegex = /(https?:\/\/[^\s]+)/g;
+const tagsToReplace = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+};
+
 export default defineComponent({
   props: {
     id: { type: String, required: true },
@@ -97,6 +104,21 @@ export default defineComponent({
 
       return hours + ":" + minutes;
     },
+    parseLink() {
+      if (!this.text) return "";
+      return this.escapingTag(this.text).replace(
+        urlRegex,
+        (url) =>
+          `<a href="${url}" target="_blank" style="color: var(--link-color)">${url}</a>`
+      );
+    },
+    escapingTag(str: string) {
+      return str.replace(/[&<>]/g, (tag) =>
+        tag in tagsToReplace
+          ? tagsToReplace[tag as keyof typeof tagsToReplace]
+          : tag
+      );
+    },
   },
 });
 </script>
@@ -105,6 +127,7 @@ export default defineComponent({
 @media (prefers-color-scheme: light) {
   .message {
     --color: #060607;
+    --link-color: #2352af;
 
     --date-background: #fefefede;
 
@@ -118,6 +141,7 @@ export default defineComponent({
 @media (prefers-color-scheme: dark) {
   .message {
     --color: #ffffff;
+    --link-color: #6b9cff;
 
     --border: #303b42;
     --background: #181922;
