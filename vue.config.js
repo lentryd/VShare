@@ -32,13 +32,6 @@ module.exports = {
     workboxOptions: {
       skipWaiting: true,
       clientsClaim: true,
-      navigateFallback: "index.html",
-      runtimeCaching: [
-        {
-          urlPattern: /\/__\//,
-          handler: "NetworkOnly",
-        },
-      ],
     },
   },
 };
