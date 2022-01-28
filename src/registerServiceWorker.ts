@@ -21,7 +21,10 @@ if (process.env.NODE_ENV === "production") {
     },
     updated() {
       console.log("New content is available; please refresh.");
-      location.reload();
+      caches
+        .keys()
+        .then((keys) => keys.forEach((key) => caches.delete(key)))
+        .then(() => location.reload());
     },
     offline() {
       console.log(
