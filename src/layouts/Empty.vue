@@ -9,9 +9,19 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   watch: {
-    "$pwa.isInstalled"(value) {
-      if (value) this.$router.replace("/app/");
+    "$pwa.isInstalled"() {
+      this.goToApplication();
     },
+  },
+
+  methods: {
+    goToApplication() {
+      if (this.$pwa.isInstalled) this.$router.replace("/app/");
+    },
+  },
+
+  mounted() {
+    this.goToApplication();
   },
 });
 </script>
