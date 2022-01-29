@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import { register } from "register-service-worker";
 
 if (process.env.NODE_ENV === "production") {
@@ -21,10 +19,7 @@ if (process.env.NODE_ENV === "production") {
     },
     updated() {
       console.log("New content is available; please refresh.");
-      caches
-        .keys()
-        .then((keys) => keys.forEach((key) => caches.delete(key)))
-        .then(() => location.reload());
+      location.reload();
     },
     offline() {
       console.log(
