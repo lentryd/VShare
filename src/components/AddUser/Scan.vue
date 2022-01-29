@@ -124,8 +124,8 @@ ul {
 }
 
 .qrcode-stream-wrapper {
-  width: 15rem;
-  height: 15rem;
+  width: 15rem !important;
+  height: 15rem !important;
   overflow: hidden;
   border-radius: 6px;
 }

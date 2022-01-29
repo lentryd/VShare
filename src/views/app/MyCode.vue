@@ -67,7 +67,7 @@ export default defineComponent({
     --cancel-btn: #1771e6;
 
     --qr-color: #000000;
-    --qr-background: #c7d5ec;
+    --qr-background: #f3ffff;
   }
 }
 
@@ -75,8 +75,8 @@ export default defineComponent({
   .container {
     --cancel-btn: #3f9bff;
 
-    --qr-color: #f1feff;
-    --qr-background: #14142e;
+    --qr-color: #000000;
+    --qr-background: #f3ffff;
   }
 }
 
@@ -114,8 +114,8 @@ ul svg {
 }
 
 .qr-code {
-  width: 10rem;
-  height: 10rem;
+  width: 15rem;
+  height: 15rem;
   padding: 0.5rem;
   overflow: hidden;
   background: var(--qr-background);

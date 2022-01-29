@@ -47,13 +47,13 @@ export default defineComponent({
 <style scoped>
 @media (prefers-color-scheme: light) {
   .pop-up {
-    --pop-up-background: #ffffffa6;
+    --pop-up-background: #ffffffbf;
   }
 }
 
 @media (prefers-color-scheme: dark) {
   .pop-up {
-    --pop-up-background: #000000a6;
+    --pop-up-background: #000000bf;
   }
 }
 
