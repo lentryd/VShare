@@ -39,7 +39,6 @@ export default defineComponent({
   },
 
   beforeMount() {
-    console.log("ggg");
     this.selectRoom();
   },
 });
