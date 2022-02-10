@@ -1,24 +1,23 @@
-import { ref, unref } from "vue";
-import { userState } from "../auth/";
-import { save as saveFile } from "@/plugins/idb/files";
+/**
+ * Получение/хранение/обновление сообщений
+ */
+
+import { ref } from "vue";
 import {
-  Unsubscribe,
-  onSnapshot,
+  Unsubscribe as FUnsubscribe,
+  getFirestore,
   query,
   collection,
-  getFirestore,
   where,
-  addDoc,
-  serverTimestamp,
+  getDocsFromCache,
+  onSnapshot,
 } from "firebase/firestore";
-import {
-  getStorage,
-  ref as storageRef,
-  uploadBytesResumable,
-} from "firebase/storage";
+
+// Время действия слушателя
+const UNSUBSCRIBE_TIMEOUT = 1.8e6;
 
 // Содержимое всех сообщений
-interface MsgBase {
+export interface MsgBase {
   id: string;
   from: string;
   roomId: string;
@@ -26,198 +25,144 @@ interface MsgBase {
   isPending: boolean;
 }
 // Содержимое текстовых сообщений
-interface MsgText extends MsgBase {
+export interface MsgText extends MsgBase {
   text: string;
   type: "message";
 }
 // Содержимое сообщений с файлом
-interface MsgFile extends MsgBase {
+export interface MsgFile extends MsgBase {
   name: string;
   size: number;
   type: "file";
   fileId: number;
 }
 // Содержимое отправляемого файла
-interface MsgPendingFile extends MsgFile {
+export interface MsgPendingFile extends MsgFile {
   cancel: () => boolean;
   transferredSize: number;
 }
 export type FMessage = MsgText | MsgFile | MsgPendingFile;
+// Данные для отключения слушателя
+interface Unsubscribe {
+  roomId: string;
+  timeout: number;
+  unsubscribe: FUnsubscribe;
+}
+
+const unsubscribes: Unsubscribe[] = [];
+/**
+ * Обновление/добавление слушателей комнаты
+ * @param roomId ID нужной комнаты
+ * @param unsubscribe функция для удаления слушателя
+ */
+function updateUnsubscribe(roomId: string, unsubscribe?: FUnsubscribe) {
+  let index = unsubscribes.findIndex(({ roomId: rId }) => rId == roomId);
+  if (index == -1 && !unsubscribe) return false;
+  if (index == -1 && unsubscribe)
+    index = unsubscribes.push({ roomId, timeout: 0, unsubscribe }) - 1;
+
+  console.log("Updated message listener for room (id: %s)", roomId);
+  clearTimeout(unsubscribes[index].timeout);
+  unsubscribes[index].timeout = setTimeout(() => {
+    const index = unsubscribes.findIndex(({ roomId: rId }) => rId == roomId);
+    if (index == -1) return;
+
+    unsubscribes[index].unsubscribe();
+    unsubscribes.splice(index, 1);
+    console.log("Removed message listener for room (id: %s)", roomId);
+  }, UNSUBSCRIBE_TIMEOUT) as unknown as number;
+  return true;
+}
 
 export const messages = ref<FMessage[]>([]);
 
 /**
- * Добавление сообщения
- * @param message новое сообщение
+ * Обновление/добавление сообщения
+ * @param msg новое содержимое сообщения
  */
-function addMessage(message: FMessage) {
-  if (
-    message.type == "file" &&
-    message.isPending &&
-    messages.value.find((m) => m.type == "file" && m.fileId == message.fileId)
-  ) {
-    updateMessage(message);
-    return;
-  }
+export function updateMessage(msg: FMessage) {
+  let index = messages.value.findIndex(
+    (m) =>
+      m.id === msg.id ||
+      (msg.isPending &&
+        m.type == "file" &&
+        msg.type == "file" &&
+        m.fileId == msg.fileId)
+  );
+  if (index == -1) messages.value.push(msg);
+  else messages.value[index] = msg;
 
-  messages.value.push(message);
+  console.log(
+    "%s message (id: %s)",
+    index == -1 ? "added" : "modified",
+    msg.id
+  );
+}
 
-  console.log("added message (id: %s)", message.id);
-}
-/**
- * Обновление сообщения
- * @param message новое содержимое сообщения
- */
-function updateMessage(message: FMessage) {
-  const index = messages.value.findIndex(({ id }) => id === message.id);
-  messages.value[index] = message;
-}
 /**
  * Удаление сообщения
  * @param id id сообщения
  */
-function removeMessage(id: string) {
+export function removeMessage(id: string) {
   const index = messages.value.findIndex(({ id: id1 }) => id === id1);
   messages.value.splice(index, 1);
 
   console.log("removed message (id: %s)", id);
 }
 
-let unsubscribe: null | Unsubscribe = null;
+/**
+ * Получение сообщений комнаты
+ * @param roomId ID комнаты
+ */
 export function init(roomId: string) {
-  unsubscribe?.();
-  messages.value = messages.value.filter(
-    (m) => m.type == "file" && m.isPending
+  if (updateUnsubscribe(roomId)) return;
+  const q = query(
+    collection(getFirestore(), "messages"),
+    where("roomId", "==", roomId)
   );
 
-  unsubscribe = onSnapshot(
-    query(
-      collection(getFirestore(), "messages"),
-      where("roomId", "==", roomId)
-    ),
-    (snapshot) => {
-      console.group("Message listener");
+  // Получаем кеш (иллюзия быстрой работы)
+  getDocsFromCache(q)
+    .then((snapshot) => {
+      console.group("Message Messages from cache");
 
-      snapshot.docChanges().forEach(({ doc, type }) => {
-        const isPending = doc.metadata.hasPendingWrites;
-        const timestamp = !isPending
-          ? doc.get("timestamp").seconds * 1000
-          : Date.now();
-        const message = {
-          ...doc.data(),
-          id: doc.id,
-          isPending,
-          timestamp,
-        } as FMessage;
-
-        switch (type) {
-          case "added":
-            addMessage(message);
-            break;
-
-          case "modified":
-            updateMessage(message);
-            break;
-
-          case "removed":
-            removeMessage(doc.id);
-            break;
-        }
-      });
+      snapshot.forEach((snapshot) =>
+        updateMessage({
+          ...snapshot.data(),
+          id: snapshot.id,
+          isPending: false,
+          timestamp: snapshot.get("timestamp").seconds * 1000,
+        } as FMessage)
+      );
 
       console.groupEnd();
-    }
-  );
-}
-
-export function sendMessage(roomId: string, text: string) {
-  const from = userState.value.uid;
-  if (!from) return;
-
-  addDoc(collection(getFirestore(), "messages"), {
-    from,
-    roomId,
-    timestamp: serverTimestamp(),
-    type: "message",
-    text,
-  });
-}
-
-function fileHash(roomId: string, from: string, fileName: string) {
-  fileName = roomId + "-" + from + "-" + fileName + "-" + Date.now();
-
-  let hash = 0;
-  for (let i = 0; i < fileName.length; i++) {
-    const chr = fileName.charCodeAt(i);
-    hash = (hash << 5) - hash + chr;
-    hash |= 0;
-  }
-  return hash;
-}
-
-export async function sendFile(roomId: string, file: File) {
-  const from = userState.value.uid;
-  if (!from) return;
-
-  const { name, size, type } = file;
-  const fileId = fileHash(roomId, from, name);
-  const arrayBuffer = await file.arrayBuffer();
-
-  const uploadTask = uploadBytesResumable(
-    storageRef(getStorage(), roomId + "/" + fileId),
-    arrayBuffer,
-    { contentType: type }
-  );
-
-  const message: MsgPendingFile = unref(
-    ref({
-      id: "pendingFile-" + fileId,
-      from,
-      roomId,
-      timestamp: Date.now(),
-      isPending: true,
-
-      name,
-      size,
-      type: "file",
-      fileId,
-
-      cancel: () => uploadTask.cancel(),
-      transferredSize: 0,
     })
-  );
+    .catch((e) => console.error("Failed to retrieve messages from cache", e));
 
-  uploadTask.on(
-    "state_changed",
-    (snapshot) => {
-      message.transferredSize = snapshot.bytesTransferred;
-    },
-    (error) => {
-      console.error(error);
-      removeMessage(message.id);
-    },
-    () => {
-      saveFile({
-        id: fileId,
-        name,
-        type: type || "application/octet-stream",
-        data: arrayBuffer,
-      });
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    console.group("Room message listener (id: %s)", roomId);
 
-      addDoc(collection(getFirestore(), "messages"), {
-        from,
-        roomId,
-        timestamp: serverTimestamp(),
-        type: "file",
-        name,
-        size,
-        fileId,
-      }).then(({ id }) => {
-        console.log("changed message id (%s -> %s)", message.id, id);
-        message.id = id;
-      });
-    }
-  );
+    snapshot.docChanges().forEach(({ doc, type }) => {
+      switch (type) {
+        case "added":
+        case "modified":
+          updateMessage({
+            ...doc.data(),
+            id: doc.id,
+            isPending: doc.metadata.hasPendingWrites,
+            timestamp:
+              (doc.get("timestamp")?.seconds ?? Date.now() / 1000) * 1000,
+          } as FMessage);
+          break;
 
-  addMessage(message);
+        case "removed":
+          removeMessage(doc.id);
+          break;
+      }
+    });
+
+    console.groupEnd();
+  });
+
+  updateUnsubscribe(roomId, unsubscribe);
 }
