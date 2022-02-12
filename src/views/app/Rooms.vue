@@ -1,7 +1,7 @@
 <template>
   <Rooms />
 
-  <Room v-show="roomExists" />
+  <Room :key="roomId" :roomId="roomId" v-show="roomExists" />
 </template>
 
 <script lang="ts">

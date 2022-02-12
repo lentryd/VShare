@@ -177,33 +177,42 @@ const exampleMessages = [
 export default defineComponent({
   components: { Day },
 
+  props: {
+    roomId: String,
+  },
+
   data: () => ({
     firstScroll: true,
   }),
 
   computed: {
+    messages() {
+      return !this.isOpen
+        ? exampleMessages
+        : this.$firebase.room.messages.filter(
+            ({ roomId }) => roomId == this.roomId
+          );
+    },
     days() {
       const days: MsgDay[] = [];
 
-      (this.isOpen ? this.$firebase.room.messages : exampleMessages)
-        .sort(({ timestamp: t }, { timestamp: t1 }) => +t - +t1)
-        .forEach((msg) => {
-          const { from, timestamp } = msg;
-          const date = new Date(timestamp);
-          date.setHours(0, 0, 0, 0);
+      this.messages.forEach((msg) => {
+        const { from, timestamp } = msg;
+        const date = new Date(timestamp);
+        date.setHours(0, 0, 0, 0);
 
-          let dIndex = days.findIndex((d) => +d.date == +date);
-          if (dIndex < 0) {
-            dIndex = days.push({ date, groups: [] }) - 1;
-          }
+        let dIndex = days.findIndex((d) => +d.date == +date);
+        if (dIndex < 0) {
+          dIndex = days.push({ date, groups: [] }) - 1;
+        }
 
-          const groups = days[dIndex].groups;
-          if (from == groups[groups.length - 1]?.from) {
-            days[dIndex].groups[groups.length - 1].messages.push(msg);
-          } else {
-            days[dIndex].groups.push({ from, messages: [msg] });
-          }
-        });
+        const groups = days[dIndex].groups;
+        if (from == groups[groups.length - 1]?.from) {
+          days[dIndex].groups[groups.length - 1].messages.push(msg);
+        } else {
+          days[dIndex].groups.push({ from, messages: [msg] });
+        }
+      });
 
       return days;
     },
@@ -214,9 +223,8 @@ export default defineComponent({
 
     isOpen() {
       return (
-        this.$idb.passwords.data.find(
-          (p) => p.roomId === this.$firebase.room.data.id
-        )?.isOpen ?? true
+        this.$idb.passwords.data.find((p) => p.roomId === this.roomId)
+          ?.isOpen ?? true
       );
     },
 
@@ -229,20 +237,18 @@ export default defineComponent({
     isOpen() {
       this.scrollBottom();
     },
-    "$firebase.room.data.id"() {
-      this.firstScroll = true;
-    },
-    "$firebase.room.messages"(v) {
+    messages(v) {
       const div = this.$refs.room as HTMLDivElement;
       const scrollTop = div.scrollHeight - div.offsetHeight - div.scrollTop;
 
       if (
         v[v.length - 1]?.from != this.$firebase.auth.state.uid &&
-        scrollTop > 20
+        scrollTop > 20 &&
+        !this.firstScroll
       )
         return;
 
-      setTimeout(() => this.scrollBottom(), this.firstScroll ? 350 : 0);
+      setTimeout(() => this.scrollBottom(), 0);
       if (v.length) this.firstScroll = false;
     },
   },

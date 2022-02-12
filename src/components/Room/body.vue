@@ -7,7 +7,7 @@
   >
     <Password v-model:set="setPassword" />
     <Header @enterPassword="setPassword = true" />
-    <Messages />
+    <Messages :roomId="roomId" />
     <Form />
 
     <transition name="dissolution">
@@ -29,6 +29,10 @@ import Form from "./form.vue";
 export default defineComponent({
   components: { Password, Header, Messages, Form },
 
+  props: {
+    roomId: String,
+  },
+
   data: () => ({
     oneFile: true,
     isDragging: false,
@@ -41,9 +45,6 @@ export default defineComponent({
         this.$idb.passwords.data.find((p) => p.roomId === this.roomId)
           ?.isOpen ?? true
       );
-    },
-    roomId() {
-      return this.$firebase.room.data.id;
     },
     roomName() {
       return this.$firebase.room.data.name;
