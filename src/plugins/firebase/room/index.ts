@@ -1,5 +1,6 @@
 export { members, FMember, getMember } from "./members";
-export { messages, FMessage, sendFile, sendMessage } from "./messages";
+export { messages, FMessage } from "./messages";
+export { sendFile, sendMessage } from "./form";
 
 import { ref } from "vue";
 import { rooms } from "../rooms";
