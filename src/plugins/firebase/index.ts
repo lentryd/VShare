@@ -138,9 +138,9 @@ export default {
       {
         enumerable: true,
         get: () =>
-          unref(messages)
-            .filter(({ roomId }) => roomId == room.value.id)
-            .sort(({ timestamp: t }, { timestamp: t1 }) => +t - +t1),
+          unref(messages).sort(
+            ({ timestamp: t }, { timestamp: t1 }) => +t - +t1
+          ),
       }
     );
     // $firebase.rooms
