@@ -1,0 +1,81 @@
+/* Generated Styles - Do Not Edit */
+@import "~@/assets/variables.scss";
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500&display=swap");
+
+.display1 {
+  @include display1;
+}
+
+.display2,
+.display-large {
+  @include display2;
+}
+
+.display3,
+.display-medium {
+  @include display3;
+}
+
+.headline1,
+.display-small {
+  @include headline1;
+}
+
+.headline2,
+.headline-large {
+  @include headline2;
+}
+
+.headline3,
+.headline-medium {
+  @include headline3;
+}
+
+.headline4,
+.headline-small {
+  @include headline4;
+}
+
+.headline5,
+.title-large {
+  @include headline5;
+}
+
+.headline6 {
+  @include headline6;
+}
+
+.subhead1,
+.title-medium {
+  @include subhead1;
+}
+
+.subhead2,
+.title-small {
+  @include subhead2;
+}
+
+.body1,
+.body-large {
+  @include body1;
+}
+
+.body2,
+.body-medium {
+  @include body2;
+}
+
+.caption,
+.body-small {
+  @include caption;
+}
+
+.button,
+.label-large {
+  @include button;
+}
+
+.overline,
+.label-medium {
+  @include overline;
+}

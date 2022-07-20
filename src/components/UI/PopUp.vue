@@ -1,98 +1,210 @@
 <template>
-  <transition name="dissolution">
-    <div class="pop-up" v-show="component">
-      <Component :is="component" />
-    </div>
-  </transition>
+  <Teleport to="body">
+    <Transition name="popup-transition">
+      <div v-if="show" class="popup" @click.self="show = false">
+        <div
+          ref="content"
+          :style="style"
+          class="popup-content"
+          :class="{ 'no-animation': isTap }"
+          @touchstart="onTap"
+          @touchmove="onTapMove"
+          @touchend="onTapEnd"
+          @touchcancel="onTapEnd"
+        >
+          <span v-if="title" class="title-medium" v-text="title" />
 
-  <div class="pop-up-container" @click.self="close" />
+          <div class="content">
+            <slot />
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script lang="ts">
-import {
-  defineComponent,
-  PropType,
-  defineAsyncComponent,
-  AsyncComponentLoader,
-} from "vue";
-import { RouteLocationNormalized } from "vue-router";
+import { defineComponent } from "vue";
 
 export default defineComponent({
+  name: "Popup",
+
   props: {
-    route: Object as PropType<RouteLocationNormalized>,
+    title: { type: String, default: "" },
+    minHeight: { type: [String, Number], default: 0 },
+    modelValue: { type: Boolean, default: false },
   },
 
-  emits: ["update:route"],
+  emits: ["update:modelValue"],
+
+  data: () => ({
+    diff: 0,
+    isTap: false,
+    isFull: false,
+    height: "" as string | number,
+    positionY: 0,
+    lastPositionY: 0,
+    timestamp: 0,
+  }),
 
   computed: {
-    component() {
-      const component = this.route?.matched.at(-1)?.components.default;
-      if (!component) return undefined;
+    show: {
+      get() {
+        return this.modelValue;
+      },
+      set(value: boolean) {
+        this.$emit("update:modelValue", value);
+      },
+    },
 
-      return "render" in component
-        ? component
-        : defineAsyncComponent(component as AsyncComponentLoader);
+    style() {
+      return {
+        height: this.num2px(this.height),
+        "min-height": this.num2px(this.minHeight),
+      };
     },
   },
 
   methods: {
-    close() {
-      this.$emit("update:route", null);
-      history.back();
+    num2px(data: string | number) {
+      return data + (typeof data === "number" ? "px" : "");
+    },
+
+    onTap(e: TouchEvent) {
+      const el = this.$refs.content as HTMLElement;
+      if (!el) return;
+
+      this.isTap = true;
+      this.positionY = e.touches[0].pageY;
+      this.diff = el.getBoundingClientRect().y - this.positionY;
+      this.timestamp = Date.now();
+      this.height = document.body.clientHeight - e.touches[0].pageY - this.diff;
+    },
+    onTapMove(e: TouchEvent) {
+      const el = e.target as Element;
+      if (!el) return;
+
+      this.lastPositionY = e.touches[0].pageY;
+      this.height = document.body.clientHeight - e.touches[0].pageY - this.diff;
+    },
+    onTapEnd() {
+      this.isTap = false;
+      if (typeof this.height != "number") return;
+
+      const diff = this.positionY - this.lastPositionY;
+      if (Math.abs(diff) < 20) this.height = "";
+      else if (diff > 0) {
+        this.isFull = true;
+        this.height = "100%";
+      } else if (this.isFull) {
+        this.isFull = false;
+
+        const el = this.$refs.content as HTMLElement;
+        let height = "";
+        const oldHeight = getComputedStyle(el).height;
+        this.height = oldHeight;
+
+        el.style.height = "auto";
+        height = getComputedStyle(el).height;
+        el.style.height = oldHeight;
+        getComputedStyle(el).height;
+
+        requestAnimationFrame(() => {
+          el.style.height = height;
+        });
+      } else {
+        this.show = false;
+        this.height = "";
+      }
     },
   },
 });
 </script>
 
-<style scoped>
-@media (prefers-color-scheme: light) {
-  .pop-up {
-    --pop-up-background: #ffffffbf;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .pop-up {
-    --pop-up-background: #000000bf;
-  }
-}
-
-.pop-up {
-  top: 50%;
-  left: 50%;
-  width: calc(95% - 1.5rem);
-  height: calc(95% - 0.9rem);
-  z-index: 2;
-  display: flex;
-  overflow: auto;
-  position: absolute;
-  transform: translate(-50%, -50%);
-  background: var(--pop-up-background);
-  align-items: center;
-  border-radius: 8px;
-  justify-content: center;
-  backdrop-filter: blur(6px);
-}
-
-@media screen and (max-width: 42em) {
-  .pop-up {
-    width: 100%;
-    height: 100%;
-    border-radius: 0;
-  }
-}
-
-.pop-up-container {
+<style lang="scss" scoped>
+.popup {
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
-  display: none;
-  position: absolute;
+  z-index: 2;
+  display: flex;
+  position: fixed;
+  background: #0000009b;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
-.pop-up:not([style="display: none;"]) + .pop-up-container {
-  display: unset;
+.popup-content {
+  gap: 12px;
+  display: flex;
+  padding: 12px 16px;
+  overflow: hidden;
+  max-height: 100%;
+  transition: height 0.3s ease;
+  border-radius: 24px 24px 0 0;
+  flex-direction: column;
+
+  @media (prefers-color-scheme: light) {
+    background: $md-sys-color-surface-light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: $md-sys-color-surface-dark;
+  }
+
+  @media screen and (min-width: 768px) {
+    width: 50%;
+    margin: 0 auto;
+  }
+
+  &::before {
+    content: "";
+    width: 25px;
+    margin: 0 auto;
+    min-height: 4px;
+    border-radius: 8px;
+
+    @media (prefers-color-scheme: light) {
+      background: $md-sys-color-surface-variant-light;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      background: $md-sys-color-surface-variant-dark;
+    }
+  }
+  &.no-animation {
+    transition: none !important;
+  }
+
+  > .title-medium {
+    margin: 0 auto;
+  }
+
+  > .content {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
+.popup-transition-enter-active,
+.popup-transition-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.popup-transition-enter-active > .popup-content,
+.popup-transition-leave-active > .popup-content {
+  transition: transform 0.2s ease;
+}
+
+.popup-transition-leave-to,
+.popup-transition-enter-from {
+  opacity: 0;
+}
+
+.popup-transition-leave-to > .popup-content,
+.popup-transition-enter-from > .popup-content {
+  transform: translateY(100%);
 }
 </style>
