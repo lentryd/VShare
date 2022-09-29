@@ -1,6 +1,6 @@
 {
   "name": "vshare",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -8,23 +8,26 @@
   },
   "dependencies": {
     "core-js": "^3.19.3",
-    "crypto-js": "^4.1.1",
-    "device-uuid": "^1.0.4",
     "firebase": "^9.6.1",
+    "mime-types": "^2.1.35",
+    "nanoid": "^4.0.0",
     "qrcode.vue": "^3.3.3",
     "register-service-worker": "^1.7.1",
-    "vue": "^3.2.24",
+    "vue": "^3.2.31",
     "vue-router": "^4.0.0-0",
     "vue3-qrcode-reader": "^0.0.1"
   },
   "devDependencies": {
-    "@types/crypto-js": "^4.0.2",
+    "@types/mime-types": "^2.1.1",
+    "@types/vue": "^2.0.0",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-pwa": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-plugin-typescript": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "@vue/compiler-sfc": "^3.2.24",
+    "sass": "^1.50.0",
+    "sass-loader": "^10.2.1",
     "typescript": "^4.5.3"
   },
   "browserslist": [

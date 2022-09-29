@@ -1,0 +1,15 @@
+name: Build Github Pages
+
+on: [release]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build-Vue
+        uses: lentryd/VDocs@1.0.0
+        with:
+          username: ${{ github.repository_owner }}
+          reponame: ${{ github.event.repository.name }}
+          branch: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}

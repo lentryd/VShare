@@ -6,7 +6,7 @@ export async function getDb() {
   return new Promise<IDBDatabase>((resolve, reject) => {
     if (DB) return resolve(DB);
 
-    const request = window.indexedDB.open("VShare-db");
+    const request = window.indexedDB.open("VS-LOCAL-DATA");
 
     request.onerror = (e) => {
       console.error("Error opening db", e);
@@ -23,10 +23,6 @@ export async function getDb() {
         keyPath: "id",
         autoIncrement: true,
       });
-      this.result.createObjectStore("passwords", {
-        keyPath: "roomId",
-        autoIncrement: true,
-      });
     };
   });
 }
@@ -35,71 +31,38 @@ import {
   init as initFiles,
   files,
   IDBFile,
-  downloadingFiles,
-  IDBDownloadingFile,
-  download,
-  save as saveFile,
-  get as getFile,
+  read as readFile,
+  write as writeFile,
+  remove as removeFile,
+  formateFile,
 } from "./files";
-import {
-  init as initPasswords,
-  passwords,
-  IDBPassword,
-  exists as existsPassword,
-  check as checkPassword,
-  save as savePassword,
-  del as delPassword,
-} from "./passwords";
 
 export interface IDB {
   files: {
-    local: IDBFile[];
-    downloading: IDBDownloadingFile[];
-    get: typeof getFile;
-    save: typeof saveFile;
-    download: typeof download;
-  };
-
-  passwords: {
-    data: IDBPassword[];
-    del: typeof delPassword;
-    save: typeof savePassword;
-    check: typeof checkPassword;
-    exists: typeof existsPassword;
+    state: IDBFile[];
+    read: typeof readFile;
+    write: typeof writeFile;
+    remove: typeof removeFile;
+    formateFile: typeof formateFile;
   };
 }
 
 export default {
   install(app: App) {
     initFiles();
-    initPasswords();
 
     app.config.globalProperties.$idb = {
-      files: { get: getFile, save: saveFile, download },
-      passwords: {
-        del: delPassword,
-        save: savePassword,
-        check: checkPassword,
-        exists: existsPassword,
+      files: {
+        read: readFile,
+        write: writeFile,
+        remove: removeFile,
+        formateFile,
       },
     };
-    // Файлы
-    Object.defineProperty(app.config.globalProperties.$idb.files, "local", {
+
+    Object.defineProperty(app.config.globalProperties.$idb.files, "state", {
       enumerable: true,
       get: () => unref(files),
-    });
-    Object.defineProperty(
-      app.config.globalProperties.$idb.files,
-      "downloading",
-      {
-        enumerable: true,
-        get: () => unref(downloadingFiles),
-      }
-    );
-    // Пароли
-    Object.defineProperty(app.config.globalProperties.$idb.passwords, "data", {
-      enumerable: true,
-      get: () => unref(passwords),
     });
   },
 };

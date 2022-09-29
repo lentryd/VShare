@@ -1,42 +1,84 @@
-import { App } from "vue";
-import { DeviceUUID, Options } from "device-uuid";
+import { App, ref, unref } from "vue";
 
-const device = new DeviceUUID();
-const du = device.parse();
+const width = ref(0);
+const height = ref(0);
+const toastText = ref("");
+const toastZIndex = ref<undefined | number>(0);
 
-function getUUID() {
-  const dua = [];
-  for (let key in device.options)
-    if (device.options[key as keyof Options] === true)
-      dua.push(du[key as keyof Options]);
-  if (!device.options.resolution && du.isMobile) dua.push(du.resolution.sort());
+function init() {
+  setSizes();
+  window.addEventListener("resize", setSizes);
 
-  const tmpUuid = du.hashMD5(dua.join(":"));
-  return [
-    tmpUuid.slice(0, 8),
-    tmpUuid.slice(8, 12),
-    "4" + tmpUuid.slice(12, 15),
-    "9" + tmpUuid.slice(15, 18),
-    tmpUuid.slice(20),
-  ].join("-");
+  themeChange(window.matchMedia("(prefers-color-scheme: light)").matches);
+  window
+    .matchMedia("(prefers-color-scheme: light)")
+    .addEventListener("change", (e) => themeChange(e.matches));
 }
 
-export const platform = du.platform;
+function setSizes() {
+  width.value = window.innerWidth;
+  height.value = window.innerHeight;
+}
+
+function toast(text?: string, zIndex?: number) {
+  if (!text) toastText.value = "";
+  else toastText.value = text;
+
+  toastZIndex.value = zIndex;
+}
+
+function themeChange(isLight: boolean) {
+  document
+    .querySelector("meta[name=theme-color]")
+    ?.setAttribute("content", isLight ? "#fffbfe" : "#1c1b1f");
+}
 
 export default {
   install(app: App) {
-    app.config.globalProperties.$device = {
-      id: getUUID(),
-      platform: du.platform,
-    };
+    init();
+
+    app.config.globalProperties.$device = { toast };
+
+    Object.defineProperty(app.config.globalProperties.$device, "width", {
+      enumerable: true,
+      get: () => unref(width),
+    });
+    Object.defineProperty(app.config.globalProperties.$device, "height", {
+      enumerable: true,
+      get: () => unref(height),
+    });
+    Object.defineProperty(app.config.globalProperties.$device, "isMobile", {
+      enumerable: true,
+      get: () => unref(width) < 640,
+    });
+    Object.defineProperty(app.config.globalProperties.$device, "isDesktop", {
+      enumerable: true,
+      get: () => unref(width) >= 640,
+    });
+    Object.defineProperty(app.config.globalProperties.$device, "toastText", {
+      enumerable: true,
+      get: () => unref(toastText),
+    });
+    Object.defineProperty(app.config.globalProperties.$device, "toastZIndex", {
+      enumerable: true,
+      get: () => unref(toastZIndex),
+    });
   },
 };
 
+export interface Device {
+  toast: typeof toast;
+
+  width: number;
+  height: number;
+  isMobile: boolean;
+  isDesktop: boolean;
+  toastText: string;
+  toastZIndex?: number;
+}
+
 declare module "@vue/runtime-core" {
   export interface ComponentCustomProperties {
-    readonly $device: {
-      id: string;
-      platform: string;
-    };
+    readonly $device: Device;
   }
 }

@@ -1,0 +1,45 @@
+////// "Each" loop with font icon
+//////
+//////
+$colors-number: length($icon-colours);
+$actual-icon-color: 1;
+
+@each $filetype,
+$icon-primary-color,
+$icon in $icon-list {
+  @if (type-of($icon-primary-color) !="color" and ($icon-primary-color)) {
+    // if background isn't a color or is null
+    $icon-primary-color: nth($icon-colours, $actual-icon-color);
+
+    @if ($actual-icon-color < $colors-number) {
+      // Prepare the next color then increase the index counter
+      $actual-icon-color: $actual-icon-color +1;
+    }
+
+    @else {
+      $actual-icon-color: 1;
+    }
+  }
+
+  @else {
+    // else  background is a color or isn't null
+    $icon-primary-color: $icon-primary-color;
+  }
+
+  $font-color: $shape-color;
+
+
+  // APPLY STYLE
+  .mime-icon.ico-#{$filetype} .ico {
+    background: $icon-primary-color;
+  }
+
+  .mime-icon.ico-#{$filetype} .ico:before {
+    color: $font-color;
+    content: $icon;
+  }
+
+  .mime-icon.ico-#{$filetype} .ico:after {
+    content: str-slice(to-upper-case($filetype), 0, 5);
+  }
+}

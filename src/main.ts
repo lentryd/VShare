@@ -1,18 +1,28 @@
 import { createApp } from "vue";
-
 import App from "@/App.vue";
-import router from "@/router";
+
+// Плагины
+import fb from "@/plugins/firebase";
 import idb from "@/plugins/idb";
-import pwa from "@/plugins/pwa";
+import router from "@/plugins/router";
 import device from "@/plugins/device";
-import firebase from "@/plugins/firebase/index";
+import components from "@/plugins/components";
 
+// Директивы
+import focus from "@/directives/focus";
+
+// Стили
+import "@/assets/icons.scss";
+import "@/assets/theme.scss";
+import "@/assets/mime-icons/index.scss";
+
+// Инициализация приложения
 import "@/registerServiceWorker";
-
 createApp(App)
+  .use(fb)
   .use(idb)
-  .use(pwa)
   .use(router)
   .use(device)
-  .use(firebase)
+  .use(components)
+  .directive("focus", focus)
   .mount("#app");

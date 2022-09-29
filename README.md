@@ -1,19 +1,24 @@
-# vshare
+# VShare
 
-## Project setup
-```
-npm install
-```
+Это инструмент, который позволяет вам удобно обмениваться файлами между устройствами через Интернет.
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+[Страница проекта](https://vshare.lentryd.su)
 
-### Compiles and minifies for production
-```
-npm run build
-```
+## Сделано с помощью
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+- [Vue](https://vuejs.org/) - Доступная, производительная и универсальная платформа для создания веб-пользовательских интерфейсов
+- [Firebase](https://firebase.google.com/) - Надежная база данных и хранилище файлов
+
+## Управление версиями
+
+Мы используем [SemVer](http://semver.org/) для управления версиями. Доступные версии см. в разделе [теги](https://github.com/lentryd/VShare/tags).
+
+## Авторы
+
+- [lentryd](https://github.com/lentryd)
+
+Смотрите также список [участников](https://github.com/lentryd/VShare/contributors), которые участвовали в этом проекте.
+
+## Лицензия
+
+Этот проект лицензирован по лицензии MIT - см. [LICENSE](LICENSE) файл для получения подробной информации

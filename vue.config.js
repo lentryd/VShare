@@ -1,8 +1,10 @@
+const webpack = require("webpack");
+
 module.exports = {
   pwa: {
     name: "VShare",
-    themeColor: "#0A0A0F",
-    msTileColor: "#0A0A0F",
+    themeColor: "#1c1b1f",
+    msTileColor: "#1c1b1f",
     iconPaths: {
       maskIcon: null,
       favicon32: "img/icons/favicon-32x32.png",
@@ -13,7 +15,8 @@ module.exports = {
 
     manifestOptions: {
       display: "standalone",
-      background_color: "#0A0A0F",
+      orientation: "portrait",
+      background_color: "#1c1b1f",
       icons: [
         {
           src: "./img/icons/android-chrome-192x192.png",
@@ -33,5 +36,21 @@ module.exports = {
       swSrc: "src/service-worker.js",
       swDest: "service-worker.js",
     },
+  },
+  css: {
+    loaderOptions: {
+      scss: {
+        additionalData: `@import "~@/assets/variables.scss";`,
+      },
+    },
+  },
+  configureWebpack: {
+    plugins: [
+      new webpack.DefinePlugin({
+        "process.env": {
+          VERSION: '"' + require("./package.json").version + '"',
+        },
+      }),
+    ],
   },
 };
