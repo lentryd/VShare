@@ -78,6 +78,7 @@ export default defineComponent({
 
       const a = document.createElement("a");
       a.href = this.file.downloadURL;
+      a.download = this.file.name;
       a.click();
     },
   },
