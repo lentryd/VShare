@@ -1,11 +1,11 @@
 import { App } from "vue";
 
-import Btn from "@/components/ui/btn.vue";
-import Field from "@/components/ui/field.vue";
-import Popup from "@/components/ui/popup.vue";
-import Dialog from "@/components/ui/dialog.vue";
-import Banner from "@/components/ui/banner.vue";
-import TopAppBar, { Item as TopAppBarItem } from "@/components/ui/top-app-bar";
+import Btn from "../components/ui/btn.vue";
+import Field from "../components/ui/field.vue";
+import Popup from "../components/ui/popup.vue";
+import Dialog from "../components/ui/dialog.vue";
+import Banner from "../components/ui/banner.vue";
+import TopAppBar, { Item as TopAppBarItem } from "../components/ui/top-app-bar";
 
 export default {
   install(app: App) {

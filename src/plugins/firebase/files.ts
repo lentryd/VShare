@@ -5,7 +5,7 @@ import {
   write as writeFile,
   remove as removeFile,
   IDBFile,
-} from "@/plugins/idb/files";
+} from "../idb/files";
 import {
   ref as storageRef,
   getStorage,
