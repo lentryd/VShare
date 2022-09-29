@@ -1,11 +1,26 @@
 <template>
-  <div class="navigation-rail">
-    <Item to="/" icon="&#xe88a;" replace icon-round label="Главная" />
+  <transition>
+    <div v-show="show" class="navigation-rail">
+      <Item
+        :to="{ name: 'App' }"
+        icon="&#xe88a;"
+        label="Главная"
+        replace
+        icon-round
+      />
 
-    <Item to="/history" replace icon-round icon="&#xe889;" label="История" />
+      <Item
+        :to="{ name: 'History' }"
+        icon="&#xe889;"
+        label="История"
+        replace
+        icon-round
+      />
 
-    <Item to="/profile" replace icon-round icon="&#xe7fd;" label="Профиль" />
-  </div>
+      <Item 
+        :to="{ name: 'Profile' }" replace icon-round icon="&#xe7fd;" label="Профиль" />
+    </div>
+  </transition>
 </template>
 
 <script lang="ts">
@@ -16,9 +31,14 @@ export default defineComponent({
   name: "Navigation Rail",
 
   components: { Item },
+
+  computed: {
+    show() {
+      return !this.$route.meta.blank;
+    },
+  },
 });
 </script>
-
 
 <style lang="scss" scoped>
 .navigation-rail {
@@ -38,8 +58,15 @@ export default defineComponent({
   @media (prefers-color-scheme: dark) {
     background: $md-sys-color-surface-dark;
   }
-  @media screen and (max-width: 768px) {
-    display: none;
-  }
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 250ms ease-in-out, width 250ms ease-in-out;
+}
+.v-leave-to,
+.v-enter-from {
+  width: 0;
+  opacity: 0;
 }
 </style>

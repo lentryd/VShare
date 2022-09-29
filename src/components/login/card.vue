@@ -3,7 +3,11 @@
     <span class="title-medium">Войдите в аккаунт</span>
     <span class="body-medium">Чтобы не потерять доступ к файлам.</span>
 
-    <Btn to="/signIn" label="Войти" filled />
+    <Btn
+      :to="{ name: 'Profile', query: { signIn: null } }"
+      label="Войти"
+      filled
+    />
   </div>
 </template>
 

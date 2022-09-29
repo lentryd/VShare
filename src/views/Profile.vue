@@ -3,9 +3,8 @@
 
   <div class="profile">
     <div class="account-info">
-      <div class="avatar" @click="editAvatar = true">
+      <div class="avatar">
         <img :src="'/img/avatars/' + me.avatar + '.png'" />
-        <span class="material-icons-round">&#xe3c9;</span>
       </div>
 
       <div class="name">
@@ -13,7 +12,40 @@
       </div>
     </div>
 
-    <Card v-if="$auth.isAnonymous" />
+    <Card v-if="$fb.auth.isAnonymous" />
+
+    <Item
+      v-show="canLinkGoogle"
+      label="Подключить аккаунт гугл"
+      @click="$fb.auth.signInWithGoogle()"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 510 510">
+        <g>
+          <g xmlns="http://www.w3.org/2000/svg">
+            <g id="glass">
+              <path
+                d="M286.875,229.5v63.75h150.45c-15.3,89.25-86.7,153-175.95,153c-104.55,0-191.25-86.7-191.25-191.25    s86.7-191.25,191.25-191.25c53.55,0,99.45,22.95,132.6,58.65l45.9-45.9c-45.9-45.9-107.1-76.5-178.5-76.5    c-140.25,0-255,114.75-255,255s114.75,255,255,255s242.25-114.75,242.25-255v-25.5H286.875z"
+              />
+            </g>
+          </g>
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+          <g xmlns="http://www.w3.org/2000/svg" />
+        </g>
+      </svg>
+    </Item>
 
     <Item
       icon="&#xe3c9;"
@@ -21,24 +53,50 @@
       iconRound
       @click="editName = true"
     />
+
+    <Item
+      icon="&#xe853;"
+      label="Изменить аватар"
+      iconRound
+      @click="editAvatar = true"
+    />
+
+    <div class="info">
+      <span class="caption">version: {{ version }}</span>
+      <span class="caption">ID: {{ me.id }}</span>
+    </div>
   </div>
 
   <UpdateName v-model="editName" />
+
   <UpdateAvatar v-model="editAvatar" />
+
+  <SignIn v-model="signIn" />
+  <SignUp v-model="signUp" />
+  <ResetPassword v-model="resetPassword" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { Card } from "@/components/login";
 import Item from "@/components/profile/item.vue";
 import TopAppBar from "@/components/ui/top-app-bar";
 import UpdateName from "@/components/profile/update-name.vue";
 import UpdateAvatar from "@/components/profile/update-avatar.vue";
+import { Card, SignIn, SignUp, ResetPassword } from "@/components/login";
 
 export default defineComponent({
   name: "Profile View",
 
-  components: { Item, Card, TopAppBar, UpdateName, UpdateAvatar },
+  components: {
+    Item,
+    Card,
+    TopAppBar,
+    UpdateName,
+    UpdateAvatar,
+    SignIn,
+    SignUp,
+    ResetPassword,
+  },
 
   data: () => ({
     editName: false,
@@ -47,7 +105,53 @@ export default defineComponent({
 
   computed: {
     me() {
-      return this.$users.me;
+      return this.$fb.users.state;
+    },
+    version() {
+      return process.env.VERSION;
+    },
+    signIn: {
+      get() {
+        return "signIn" in this.$route.query;
+      },
+
+      set(v: boolean) {
+        if (v) this.$router.push({ query: { signIn: null } });
+        else if (window?.history.state?.back == "/profile") this.$router.back();
+        else this.$router.replace("/profile");
+      },
+    },
+    signUp: {
+      get() {
+        return "signUp" in this.$route.query;
+      },
+
+      set(v: boolean) {
+        if (v) this.$router.push({ query: { signUp: null } });
+        else if (window?.history.state?.back == "/profile") this.$router.back();
+        else this.$router.replace("/profile");
+      },
+    },
+    resetPassword: {
+      get() {
+        return "resetPassword" in this.$route.query;
+      },
+
+      set(v: boolean) {
+        if (v) this.$router.push({ query: { resetPassword: null } });
+        else if (window?.history.state?.back == "/profile") this.$router.back();
+        else this.$router.replace("/profile");
+      },
+    },
+
+    component() {
+      return this.$device.isDesktop ? "Dialog" : "Popup";
+    },
+    canLinkGoogle() {
+      return (
+        !this.$fb.auth.isAnonymous &&
+        !this.$fb.auth.providers.includes("google.com")
+      );
     },
   },
 });
@@ -55,11 +159,12 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .profile {
-  @media screen and (min-width: 768px) {
-    width: 50%;
-    margin: 0 auto;
-    max-width: 560px;
-  }
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  max-width: min(640px, 100%);
+  min-height: calc(100% - 64px);
+  flex-direction: column;
 }
 
 .account-info {
@@ -72,46 +177,10 @@ export default defineComponent({
   padding-bottom: 12px;
 }
 
-.avatar {
-  cursor: pointer;
-  position: relative;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-
-  img {
-    width: 80px;
-    height: 80px;
-    transition: filter 250ms ease-in-out;
-  }
-  &:hover img {
-    filter: brightness(0.9);
-  }
-  &:focus img,
-  &:active img {
-    filter: brightness(0.75);
-  }
-
-  span {
-    right: 0;
-    bottom: 0;
-    padding: 4px;
-    font-size: 20px;
-    position: absolute;
-    border-radius: 50%;
-
-    @media (prefers-color-scheme: light) {
-      color: $md-sys-color-on-secondary-container-light;
-      background: $md-sys-color-secondary-container-light;
-      box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3),
-        0px 1px 3px 1px rgba(0, 0, 0, 0.15);
-    }
-    @media (prefers-color-scheme: dark) {
-      color: $md-sys-color-on-secondary-container-dark;
-      background: $md-sys-color-secondary-container-dark;
-      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
-      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
-    }
-  }
+.avatar > img {
+  width: 80px;
+  height: 80px;
+  transition: filter 250ms ease-in-out;
 }
 
 .name {
@@ -121,5 +190,14 @@ export default defineComponent({
   .body-medium {
     font-family: monospace;
   }
+}
+
+.info {
+  gap: 12px;
+  display: flex;
+  padding: 12px;
+  margin-top: auto;
+  align-items: center;
+  flex-direction: column;
 }
 </style>

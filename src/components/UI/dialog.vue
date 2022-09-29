@@ -1,8 +1,8 @@
 <template>
   <Teleport to="body">
     <transition name="dialog-transition">
-      <div v-if="show" class="dialog" @click.self="show = false">
-        <div class="dialog-content">
+      <div v-if="show" class="dialog" @click.self="onMask">
+        <div class="dialog-content" :class="{ maskClick: clicked }">
           <slot name="icon" />
 
           <span v-show="title" class="headline-small" v-text="title" />
@@ -35,10 +35,15 @@ export default defineComponent({
   props: {
     title: { type: String },
     description: { type: String },
+    permanent: { type: Boolean, default: false },
     modelValue: { type: Boolean, default: false },
   },
 
   emits: ["update:modelValue"],
+
+  data: () => ({
+    clicked: false,
+  }),
 
   computed: {
     show: {
@@ -49,6 +54,28 @@ export default defineComponent({
         this.$emit("update:modelValue", v);
       },
     },
+  },
+
+  methods: {
+    onMask() {
+      if (this.permanent) {
+        this.clicked = true;
+        setTimeout(() => (this.clicked = false), 300);
+      } else this.show = false;
+    },
+
+    listener(e: KeyboardEvent) {
+      if (!this.show || e.code !== "Escape") return;
+      e.preventDefault();
+      this.show = false;
+    },
+  },
+
+  beforeMount() {
+    document.addEventListener("keyup", this.listener);
+  },
+  beforeUnmount() {
+    document.removeEventListener("keyup", this.listener);
   },
 });
 </script>
@@ -93,6 +120,10 @@ export default defineComponent({
     background: $md-sys-color-surface-dark;
   }
 
+  &.maskClick {
+    animation: maskClick 0.25s ease-in-out;
+  }
+
   > span:first-child:not(.headline-small) {
     margin: 0 auto;
 
@@ -130,6 +161,16 @@ export default defineComponent({
     margin-top: 8px;
     flex-direction: row;
     justify-content: flex-end;
+  }
+}
+
+@keyframes maskClick {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
   }
 }
 

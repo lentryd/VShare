@@ -15,13 +15,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
+import { RouteLocationRaw } from "vue-router";
 
 export default defineComponent({
   name: "Button",
 
   props: {
-    to: {},
+    to: Object as PropType<RouteLocationRaw>,
     replace: { type: Boolean, default: false },
 
     label: { type: String, required: true },
@@ -83,6 +84,7 @@ export default defineComponent({
   padding: 0 24px;
   overflow: hidden;
   position: relative;
+  user-select: none;
   align-items: center;
   border-radius: 20px;
   flex-direction: row;

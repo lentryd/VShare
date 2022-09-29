@@ -12,10 +12,20 @@
           @touchend="onTapEnd"
           @touchcancel="onTapEnd"
         >
-          <span v-if="title" class="title-medium" v-text="title" />
+          <span v-show="title" class="title-medium" v-text="title" />
 
-          <div class="content">
-            <slot />
+          <div class="body">
+            <span
+              v-show="description"
+              v-text="description"
+              class="body-medium description"
+            />
+
+            <slot name="body" />
+          </div>
+
+          <div class="actions">
+            <slot name="actions" />
           </div>
         </div>
       </div>
@@ -31,7 +41,7 @@ export default defineComponent({
 
   props: {
     title: { type: String, default: "" },
-    minHeight: { type: [String, Number], default: 0 },
+    description: { type: String, default: "" },
     modelValue: { type: Boolean, default: false },
   },
 
@@ -40,10 +50,11 @@ export default defineComponent({
   data: () => ({
     diff: 0,
     isTap: false,
-    isFull: false,
+    position: {
+      start: 0,
+      current: 0,
+    },
     height: "" as string | number,
-    positionY: 0,
-    lastPositionY: 0,
     timestamp: 0,
   }),
 
@@ -53,6 +64,7 @@ export default defineComponent({
         return this.modelValue;
       },
       set(value: boolean) {
+        this.height = "";
         this.$emit("update:modelValue", value);
       },
     },
@@ -60,7 +72,6 @@ export default defineComponent({
     style() {
       return {
         height: this.num2px(this.height),
-        "min-height": this.num2px(this.minHeight),
       };
     },
   },
@@ -70,52 +81,64 @@ export default defineComponent({
       return data + (typeof data === "number" ? "px" : "");
     },
 
+    hasScrollingElement(e: { path: HTMLElement[] }) {
+      const el = this.$refs.content as HTMLElement;
+      const { path } = e;
+
+      for (const i of path) {
+        if (el == i) return false;
+        if (i.scrollTop != 0) return true;
+      }
+      return false;
+    },
+
     onTap(e: TouchEvent) {
       const el = this.$refs.content as HTMLElement;
-      if (!el) return;
+      const positionY = e?.touches?.[0]?.pageY;
+      if (!el || !positionY) return;
 
-      this.isTap = true;
-      this.positionY = e.touches[0].pageY;
-      this.diff = el.getBoundingClientRect().y - this.positionY;
+      this.isTap = false;
+      this.height = "";
       this.timestamp = Date.now();
-      this.height = document.body.clientHeight - e.touches[0].pageY - this.diff;
+      this.position.start = positionY;
     },
     onTapMove(e: TouchEvent) {
-      const el = e.target as Element;
-      if (!el) return;
+      const el = this.$refs.content as HTMLElement;
+      const positionY = e?.touches?.[0]?.pageY;
+      if (
+        positionY - this.position.start < 10 ||
+        this.hasScrollingElement(e as any)
+      )
+        return;
+      if (!this.height)
+        this.diff = el.getBoundingClientRect().y - positionY + 24;
 
-      this.lastPositionY = e.touches[0].pageY;
-      this.height = document.body.clientHeight - e.touches[0].pageY - this.diff;
+      this.isTap = true;
+      this.height = document.body.clientHeight - positionY - this.diff;
+      this.position.current = positionY;
     },
     onTapEnd() {
+      const diff = this.position.current - this.position.start > 80;
+      const timestamp = Date.now() - this.timestamp < 500;
+      if (this.isTap && (diff || timestamp))
+        return setTimeout(() => (this.show = false), 0);
+
       this.isTap = false;
-      if (typeof this.height != "number") return;
 
-      const diff = this.positionY - this.lastPositionY;
-      if (Math.abs(diff) < 20) this.height = "";
-      else if (diff > 0) {
-        this.isFull = true;
-        this.height = "100%";
-      } else if (this.isFull) {
-        this.isFull = false;
+      let height = "";
+      const el = this.$refs.content as HTMLElement;
+      const oldHeight = getComputedStyle(el).height;
 
-        const el = this.$refs.content as HTMLElement;
-        let height = "";
-        const oldHeight = getComputedStyle(el).height;
-        this.height = oldHeight;
+      el.style.height = "auto";
+      height = getComputedStyle(el).height;
+      el.style.height = oldHeight;
 
-        el.style.height = "auto";
-        height = getComputedStyle(el).height;
-        el.style.height = oldHeight;
-        getComputedStyle(el).height;
-
-        requestAnimationFrame(() => {
-          el.style.height = height;
-        });
-      } else {
-        this.show = false;
-        this.height = "";
-      }
+      this.isTap = false;
+      getComputedStyle(el).height;
+      requestAnimationFrame(() => {
+        el.style.height = height;
+        setTimeout(() => (this.height = ""), 300);
+      });
     },
   },
 });
@@ -137,40 +160,41 @@ export default defineComponent({
 
 .popup-content {
   gap: 12px;
+  width: 100%;
+  margin: 0 auto;
   display: flex;
   padding: 12px 16px;
   overflow: hidden;
-  max-height: 100%;
+  max-width: min(640px - 32px, calc(100% - 32px));
+  max-height: calc(100% - 72px);
   transition: height 0.3s ease;
   border-radius: 24px 24px 0 0;
   flex-direction: column;
 
   @media (prefers-color-scheme: light) {
+    color: $md-sys-color-on-surface-light;
     background: $md-sys-color-surface-light;
   }
 
   @media (prefers-color-scheme: dark) {
+    color: $md-sys-color-on-surface-dark;
     background: $md-sys-color-surface-dark;
-  }
-
-  @media screen and (min-width: 768px) {
-    width: 50%;
-    margin: 0 auto;
   }
 
   &::before {
     content: "";
-    width: 25px;
-    margin: 0 auto;
-    min-height: 4px;
+    width: 32px;
+    height: 4px;
+    margin: 4px auto;
+    opacity: 0.4;
     border-radius: 8px;
 
     @media (prefers-color-scheme: light) {
-      background: $md-sys-color-surface-variant-light;
+      background: $md-sys-color-on-surface-light;
     }
 
     @media (prefers-color-scheme: dark) {
-      background: $md-sys-color-surface-variant-dark;
+      background: $md-sys-color-on-surface-dark;
     }
   }
   &.no-animation {
@@ -181,21 +205,43 @@ export default defineComponent({
     margin: 0 auto;
   }
 
-  > .content {
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
+  > .body {
+    gap: 16px;
+    display: flex;
+    overflow: auto;
+    flex-direction: column;
+
+    @media (prefers-color-scheme: light) {
+      color: $md-sys-color-on-surface-variant-light;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      color: $md-sys-color-on-surface-variant-dark;
+    }
+
+    > .description {
+      margin: 0 auto;
+      text-align: center;
+    }
+  }
+
+  > .actions {
+    gap: 8px;
+    display: flex;
+    margin-top: 8px;
+    flex-direction: row;
+    justify-content: flex-end;
   }
 }
 
 .popup-transition-enter-active,
 .popup-transition-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
 }
 
 .popup-transition-enter-active > .popup-content,
 .popup-transition-leave-active > .popup-content {
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease !important;
 }
 
 .popup-transition-leave-to,

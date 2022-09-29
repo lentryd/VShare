@@ -1,6 +1,7 @@
 <template>
   <div @click="onclick" class="profile-item" tabindex="0">
-    <span :class="iconClass" v-text="icon" />
+    <span v-if="icon" :class="iconClass" v-text="icon" />
+    <slot v-else />
     <span v-text="label" />
   </div>
 </template>
@@ -17,7 +18,7 @@ export default defineComponent({
 
     label: { type: String, required: true },
 
-    icon: { type: String, required: true },
+    icon: { type: String, required: false },
     iconRound: { type: Boolean, default: false },
     iconOutlined: { type: Boolean, default: false },
   },
@@ -45,7 +46,7 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .profile-item {
   gap: 16px;
   cursor: pointer;
@@ -75,13 +76,25 @@ export default defineComponent({
     }
   }
 
-  @media screen and (min-width: 768px) {
+  @media screen and (min-width: 640px) {
     margin: 0 16px;
     margin-bottom: 4px;
     border-radius: 12px;
 
     &:last-child {
       margin-bottom: 0;
+    }
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+
+    @media (prefers-color-scheme: light) {
+      fill: $md-sys-color-on-background-light;
+    }
+    @media (prefers-color-scheme: dark) {
+      fill: $md-sys-color-on-background-dark;
     }
   }
 }

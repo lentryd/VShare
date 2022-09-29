@@ -2,6 +2,7 @@
   <Dialog
     v-model="value"
     title="Изменить имя"
+    permanent
     description="Введенное вами имя будет видно другим пользователям."
   >
     <template v-slot:body>
@@ -13,7 +14,7 @@
 
       <Btn
         filled
-        label="Изменить"
+        label="Продолжить"
         @click="update"
         :loading="loading"
         :disabled="!newName.length"
@@ -30,8 +31,6 @@ import Dialog from "@/components/ui/dialog.vue";
 
 export default defineComponent({
   name: "Update Name",
-
-  components: { Btn, Field, Dialog },
 
   props: {
     modelValue: { type: Boolean, default: false },
@@ -57,14 +56,14 @@ export default defineComponent({
 
   watch: {
     value(v) {
-      if (v) this.newName = this.$users.me.name;
+      if (v) this.newName = this.$fb.users.state.name;
     },
   },
 
   methods: {
     update() {
       this.loading = true;
-      this.$users
+      this.$fb.users
         .setName(this.newName.trim())
         .then(() => (this.value = false))
         .catch((e) => console.error(e))

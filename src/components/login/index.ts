@@ -1,3 +1,7 @@
-export { default as Bar } from "./bar.vue";
+// Визуальные компоненты
 export { default as Card } from "./card.vue";
-export { default as Google } from "./google.vue";
+
+// Функциональные компоненты
+export { default as SignIn } from "./SignIn.vue";
+export { default as SignUp } from "./SignUp.vue";
+export { default as ResetPassword } from "./ResetPassword.vue";

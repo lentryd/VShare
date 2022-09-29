@@ -1,14 +1,20 @@
 <template>
-  <label class="field" :class="{ empty: !value, focussed }">
+  <label class="field" :class="{ empty: !modelValue, error, focussed }">
     <span v-if="label" class="label" v-text="label" />
     <input
       :type="type"
-      v-model="value"
+      :name="name"
+      :value="modelValue"
+      @input="inputText"
       :autocomplete="autocomplete"
       @focus="focussed = true"
       @blur="focussed = false"
     />
-    <span class="icon material-icons-round" @click="value = ''">&#xe888;</span>
+    <span
+      class="icon material-icons-round"
+      @click="$emit('update:modelValue', '')"
+      v-text="error ? '&#xe001;' : '&#xe888;'"
+    />
   </label>
 </template>
 
@@ -20,7 +26,9 @@ export default defineComponent({
 
   props: {
     type: { type: String, default: "text" },
+    name: { type: String, default: "" },
     label: { type: String, default: "" },
+    error: { type: Boolean, default: false },
     modelValue: { type: String, default: "" },
     autocomplete: { type: String, default: "off" },
   },
@@ -28,21 +36,15 @@ export default defineComponent({
   emits: ["update:modelValue"],
 
   data: () => ({
-    value: "",
     focussed: false,
   }),
 
-  watch: {
-    value(v) {
-      this.$emit("update:modelValue", v);
+  methods: {
+    inputText(e: Event) {
+      const el = e.target as HTMLInputElement;
+      if (!el) return;
+      this.$emit("update:modelValue", el.value);
     },
-    modelValue(v) {
-      this.value = v;
-    },
-  },
-
-  mounted() {
-    this.value = this.modelValue;
   },
 });
 </script>
@@ -151,6 +153,7 @@ export default defineComponent({
     }
   }
 
+  &.error .icon,
   &.error .label {
     @media (prefers-color-scheme: light) {
       color: $md-sys-color-error-light;

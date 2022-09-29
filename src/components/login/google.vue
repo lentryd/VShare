@@ -50,7 +50,7 @@ export default defineComponent({
   methods: {
     onclick() {
       this.loading = true;
-      this.$auth.signInWithGoogle().finally(() => (this.loading = false));
+      this.$fb.auth.signInWithGoogle().finally(() => (this.loading = false));
     },
   },
 });
