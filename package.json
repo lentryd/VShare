@@ -9,11 +9,16 @@
   "dependencies": {
     "core-js": "^3.19.3",
     "firebase": "^9.6.1",
+    "mime-types": "^2.1.35",
+    "nanoid": "^4.0.0",
+    "qrcode.vue": "^3.3.3",
     "register-service-worker": "^1.7.1",
     "vue": "^3.2.31",
-    "vue-router": "^4.0.0-0"
+    "vue-router": "^4.0.0-0",
+    "vue3-qrcode-reader": "^0.0.1"
   },
   "devDependencies": {
+    "@types/mime-types": "^2.1.1",
     "@types/vue": "^2.0.0",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-pwa": "~4.5.0",
