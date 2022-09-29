@@ -1,5 +1,6 @@
 import { App } from "vue";
-import { initializeApp } from "firebase/app";
+import { getApp, initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import {
   getFirestore,
   enableMultiTabIndexedDbPersistence,
@@ -14,7 +15,9 @@ initializeApp({
   storageBucket: "vshare-69949.appspot.com",
   messagingSenderId: "15549854749",
   appId: "1:15549854749:web:b669205f9e935f269502f4",
+  measurementId: "G-7Q5BKJL2JW",
 });
+getAnalytics(getApp());
 enableMultiTabIndexedDbPersistence(getFirestore());
 
 // Модули
