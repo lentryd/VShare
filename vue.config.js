@@ -1,3 +1,5 @@
+const webpack = require("webpack");
+
 module.exports = {
   pwa: {
     name: "VShare",
@@ -41,5 +43,14 @@ module.exports = {
         additionalData: `@import "~@/assets/variables.scss";`,
       },
     },
+  },
+  configureWebpack: {
+    plugins: [
+      new webpack.DefinePlugin({
+        "process.env": {
+          VERSION: '"' + require("./package.json").version + '"',
+        },
+      }),
+    ],
   },
 };
